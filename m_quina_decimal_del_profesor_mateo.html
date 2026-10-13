@@ -1,0 +1,669 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>La Máquina Decimal del Profesor Mateo - 4.º Grado</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Fredoka+One&family=Quicksand:wght@500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Quicksand', sans-serif;
+            background: linear-gradient(135deg, #0ea5e9 0%, #3b82f6 50%, #6366f1 100%);
+            min-height: 100vh;
+            user-select: none;
+        }
+        .font-fredoka {
+            font-family: 'Fredoka One', cursive;
+        }
+        .bouncy {
+            animation: bounce 2s infinite;
+        }
+        @keyframes bounce {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-8px); }
+        }
+        .pulse-btn {
+            transition: all 0.2s ease-in-out;
+        }
+        .pulse-btn:hover {
+            transform: scale(1.04);
+        }
+        .pulse-btn:active {
+            transform: scale(0.96);
+        }
+        .teacher-bubble::after {
+            content: '';
+            position: absolute;
+            bottom: -12px;
+            left: 28px;
+            border-width: 12px 12px 0;
+            border-style: solid;
+            border-color: #312e81 transparent;
+            display: block;
+            width: 0;
+        }
+        #confetti-canvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            pointer-events: none;
+            z-index: 100;
+        }
+        .digit-box {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 2.2rem;
+            height: 3rem;
+            font-size: 1.75rem;
+            font-weight: 700;
+            background: #ffffff;
+            color: #1e1b4b;
+            border: 2px solid #818cf8;
+            border-radius: 0.5rem;
+            margin: 0 0.15rem;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+        }
+        .dot-box {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 1.5rem;
+            height: 3rem;
+            font-size: 2rem;
+            font-weight: 900;
+            color: #ef4444;
+            transition: all 0.5s ease;
+        }
+        .shift-animation {
+            animation: shiftLeft 0.8s ease-in-out infinite alternate;
+        }
+        @keyframes shiftLeft {
+            from { transform: translateX(0); }
+            to { transform: translateX(-15px); }
+        }
+    </style>
+</head>
+<body class="flex items-center justify-center p-3 sm:p-6 min-h-screen">
+
+    <canvas id="confetti-canvas"></canvas>
+
+    <div class="max-w-3xl w-full bg-white/95 backdrop-blur-md rounded-3xl shadow-2xl p-4 sm:p-8 relative overflow-hidden border-4 border-cyan-300">
+        
+        <!-- Pantalla de Inicio -->
+        <div id="welcome-screen" class="text-center py-4 sm:py-6">
+            <div class="inline-block bg-cyan-100 border-2 border-cyan-400 text-cyan-900 px-4 py-1 rounded-full font-bold text-xs sm:text-sm mb-4 animate-pulse">
+                🔬 Indicador 1.2 • Matemáticas de 4.º Grado
+            </div>
+            <h1 class="text-3xl sm:text-5xl font-fredoka text-indigo-900 mb-3 tracking-wide leading-tight">
+                La Máquina Decimal del Prof. Mateo 🤖
+            </h1>
+            
+            <div class="relative inline-block my-3">
+                <div class="w-28 h-28 sm:w-36 sm:h-36 bg-cyan-100 rounded-full border-4 border-indigo-400 flex items-center justify-center shadow-inner mx-auto overflow-hidden">
+                    <span class="text-5xl sm:text-7xl">👨‍🏫</span>
+                </div>
+                <div class="absolute -bottom-2 -right-2 bg-yellow-400 text-indigo-950 font-bold px-3 py-1 rounded-full text-xs shadow-md border border-yellow-200">
+                    ¡Prof. Mateo!
+                </div>
+            </div>
+
+            <div class="bg-indigo-50 border-2 border-indigo-200 rounded-2xl p-4 mb-6 max-w-xl mx-auto text-left shadow-sm">
+                <h3 class="font-bold text-indigo-900 mb-2 flex items-center gap-2 text-base sm:text-lg">
+                    <i class="fa-solid fa-compass-drafting text-indigo-600"></i> ¿Cuál es nuestra misión?
+                </h3>
+                <p class="text-gray-700 text-sm sm:text-base leading-relaxed">
+                    Aprenderemos el súper poder de <strong>dividir decimales entre 10, 100 y 1,000</strong> desplazando el punto decimal hacia la <strong>izquierda</strong>.
+                </p>
+                <ul class="mt-3 text-xs sm:text-sm text-indigo-800 space-y-1 font-semibold bg-white p-3 rounded-xl border border-indigo-100">
+                    <li>⬅️ <strong>÷ 10:</strong> Mueve el punto <strong>1 lugar</strong> a la izquierda.</li>
+                    <li>⬅️⬅️ <strong>÷ 100:</strong> Mueve el punto <strong>2 lugares</strong> a la izquierda.</li>
+                    <li>⬅️⬅️⬅️ <strong>÷ 1,000:</strong> Mueve el punto <strong>3 lugares</strong> a la izquierda.</li>
+                </ul>
+            </div>
+
+            <button onclick="startGame()" class="pulse-btn bg-gradient-to-r from-emerald-400 to-teal-600 text-white font-fredoka text-xl sm:text-2xl py-4 px-10 rounded-2xl shadow-xl hover:from-emerald-500 hover:to-teal-700 border-b-4 border-teal-800 transition">
+                🚀 ¡INICIAR MISIÓN DECIMAL!
+            </button>
+        </div>
+
+        <!-- Pantalla de Juego -->
+        <div id="game-screen" class="hidden">
+            <!-- Barra Superior de Estado -->
+            <div class="flex flex-wrap justify-between items-center bg-indigo-900 text-white p-3 sm:p-4 rounded-2xl mb-5 shadow-inner gap-2">
+                <div class="flex items-center gap-2">
+                    <span class="font-bold text-xs sm:text-sm text-cyan-200">RETO:</span>
+                    <div class="w-24 sm:w-36 bg-indigo-950 h-3.5 rounded-full overflow-hidden border border-indigo-700">
+                        <div id="progress-bar" class="bg-cyan-400 h-full transition-all duration-300" style="width: 10%;"></div>
+                    </div>
+                    <span id="question-count" class="font-bold text-xs sm:text-sm text-cyan-300">1/10</span>
+                </div>
+
+                <div class="flex items-center gap-3">
+                    <div class="flex items-center gap-1 text-amber-300 font-bold text-sm sm:text-base">
+                        <i class="fa-solid fa-fire text-orange-400"></i>
+                        <span id="streak-count">Racha: 0</span>
+                    </div>
+                    <div class="flex items-center gap-1 text-yellow-300 font-bold text-sm sm:text-base bg-indigo-800 px-3 py-1 rounded-xl">
+                        <i class="fa-solid fa-star"></i>
+                        <span id="score-count">0</span> pts
+                    </div>
+                </div>
+            </div>
+
+            <!-- Diálogo del Profesor Mateo -->
+            <div class="flex items-start gap-3 mb-4">
+                <div class="w-14 h-14 sm:w-16 sm:h-16 bg-cyan-100 rounded-full border-2 border-cyan-400 flex-shrink-0 flex items-center justify-center text-3xl shadow">
+                    👨‍🏫
+                </div>
+                <div class="teacher-bubble relative bg-indigo-900 text-white p-3 sm:p-4 rounded-2xl shadow-md w-full">
+                    <p id="teacher-message" class="text-xs sm:text-sm font-medium leading-relaxed">
+                        ¡Hola, explorador(a)! Mira con atención el número y entre cuánto lo vamos a dividir.
+                    </p>
+                </div>
+            </div>
+
+            <!-- Panel de la Máquina Decimal -->
+            <div class="bg-gradient-to-b from-slate-900 to-indigo-950 rounded-2xl p-4 sm:p-6 mb-5 text-white shadow-xl border-2 border-indigo-700 relative">
+                <div class="flex justify-between items-center mb-3">
+                    <span id="problem-badge" class="bg-indigo-700 text-cyan-200 text-xs font-bold px-3 py-1 rounded-full uppercase tracking-wider">
+                        Reto Directo
+                    </span>
+                    <button onclick="toggleHintModal()" class="pulse-btn text-xs sm:text-sm bg-amber-500 hover:bg-amber-600 text-slate-950 font-bold px-3 py-1.5 rounded-xl flex items-center gap-1 shadow">
+                        <i class="fa-solid fa-lightbulb"></i> Regla del Prof. Mateo
+                    </button>
+                </div>
+
+                <!-- Enunciado o Expresión -->
+                <div id="problem-title" class="text-sm sm:text-base text-gray-200 mb-3 text-center font-medium">
+                    Calcula el cociente exacto:
+                </div>
+
+                <!-- Visualización de Operación -->
+                <div id="visual-expression" class="flex flex-wrap items-center justify-center gap-2 sm:gap-4 my-4 font-fredoka text-2xl sm:text-4xl text-yellow-300 bg-indigo-900/60 p-4 rounded-2xl border border-indigo-600/50">
+                    <!-- Operación inyectada dinámicamente -->
+                </div>
+
+                <!-- Campo de Entrada / Selector -->
+                <div id="interaction-area" class="mt-4">
+                    <!-- Dinámico: Teclado o Botones -->
+                </div>
+            </div>
+
+            <!-- Panel de Explicación Feedback -->
+            <div id="explanation-box" class="hidden bg-emerald-50 border-2 border-emerald-400 rounded-2xl p-4 mb-5 text-emerald-950 animate-fade-in shadow">
+                <div class="flex items-center gap-2 font-bold text-base mb-1 text-emerald-800">
+                    <i class="fa-solid fa-circle-check text-emerald-600 text-lg"></i>
+                    <span id="feedback-status">¡Explicación del Profesor Mateo!</span>
+                </div>
+                <p id="explanation-text" class="text-xs sm:text-sm leading-relaxed text-gray-800">
+                    Explicación paso a paso...
+                </p>
+                <button onclick="nextQuestion()" class="mt-3 pulse-btn bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2.5 px-6 rounded-xl text-xs sm:text-sm transition flex items-center gap-2 shadow-md">
+                    <span>Siguiente Reto</span>
+                    <i class="fa-solid fa-arrow-right"></i>
+                </button>
+            </div>
+        </div>
+
+        <!-- Modal de Pista / Regla del Profesor Mateo -->
+        <div id="hint-modal" class="hidden fixed inset-0 bg-slate-950/70 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+            <div class="bg-white rounded-3xl p-5 sm:p-7 max-w-lg w-full border-4 border-amber-400 shadow-2xl relative animate-scale-up">
+                <button onclick="toggleHintModal()" class="absolute top-4 right-4 text-gray-400 hover:text-gray-700 text-xl font-bold">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+
+                <div class="flex items-center gap-3 mb-3">
+                    <span class="text-3xl">💡</span>
+                    <h3 class="text-xl font-fredoka text-indigo-900">Regla del Desplazamiento Decimal</h3>
+                </div>
+
+                <p class="text-xs sm:text-sm text-gray-700 mb-4 leading-relaxed">
+                    Al <strong>dividir entre 10, 100 o 1,000</strong>, el número se hace más pequeño, por lo que el <strong>punto decimal se desplaza hacia la IZQUIERDA</strong> tantas posiciones como ceros tenga el divisor:
+                </p>
+
+                <!-- Animación gráfica explicativa -->
+                <div class="bg-indigo-50 p-4 rounded-2xl border border-indigo-200 text-center mb-4">
+                    <div class="text-xs font-bold text-indigo-800 uppercase mb-2">Ejemplo: 45.8 ÷ 100 (2 ceros = 2 saltos a la izquierda)</div>
+                    <div class="flex items-center justify-center font-fredoka text-2xl text-indigo-950 my-2 tracking-widest">
+                        <span class="text-gray-400">0</span>
+                        <span class="text-red-500 underline decoration-wavy">.</span>
+                        <span>4</span>
+                        <span>5</span>
+                        <span class="text-gray-300">8</span>
+                    </div>
+                    <div class="text-xs text-indigo-600 font-semibold">⬅️ ⬅️ ¡El punto salta 2 lugares a la izquierda! = <strong>0.458</strong></div>
+                </div>
+
+                <div class="bg-amber-50 p-3 rounded-xl border border-amber-200 text-xs text-amber-900 mb-4">
+                    <strong>⚠️ Consejo del Prof. Mateo:</strong> Si te quedas sin cifras a la izquierda, ¡agrega ceros `0` según los necesites!
+                </div>
+
+                <button onclick="toggleHintModal()" class="w-full pulse-btn bg-amber-500 hover:bg-amber-600 text-indigo-950 font-bold py-2.5 rounded-xl text-sm transition">
+                    ¡Entendido, Profesor!
+                </button>
+            </div>
+        </div>
+
+        <!-- Pantalla Final de Resumen -->
+        <div id="summary-screen" class="hidden text-center py-6">
+            <h1 class="text-3xl sm:text-4xl font-fredoka text-indigo-900 mb-2">¡Misión Cumplida! 🎉</h1>
+            <p class="text-gray-600 text-sm sm:text-base mb-5">Has completado los 10 retos de división decimal.</p>
+
+            <div class="bg-gradient-to-b from-indigo-50 to-cyan-50 border-2 border-indigo-200 rounded-3xl p-6 mb-6 shadow-md max-w-md mx-auto">
+                <div id="badge-icon" class="text-7xl mb-2 bouncy">🥇</div>
+                <h2 id="final-title" class="text-2xl font-fredoka text-indigo-950 mb-1">¡Maestro del Punto Decimal!</h2>
+                <p id="final-score" class="text-lg font-bold text-emerald-600 mb-4">Puntaje: 1000 pts</p>
+                
+                <div class="grid grid-cols-2 gap-3 bg-white p-3 rounded-2xl border border-indigo-100 text-xs sm:text-sm mb-4 font-semibold">
+                    <div class="text-gray-700">Aciertos: <strong id="correct-count" class="text-indigo-700">10/10</strong></div>
+                    <div class="text-gray-700">Puntos: <strong id="final-stars" class="text-amber-500">⭐ 1000</strong></div>
+                </div>
+
+                <div class="bg-indigo-900 text-white p-4 rounded-2xl text-xs sm:text-sm leading-relaxed font-medium shadow-inner">
+                    <span id="final-teacher-msg">¡Excelente trabajo! Desplazas el punto decimal hacia la izquierda como un verdadero experto. ¡Sigue así!</span>
+                </div>
+            </div>
+
+            <button onclick="restartGame()" class="pulse-btn bg-gradient-to-r from-indigo-600 to-purple-600 text-white font-fredoka text-lg py-3 px-8 rounded-2xl shadow-xl border-b-4 border-purple-900 transition">
+                🔄 VOLVER A JUGAR
+            </button>
+        </div>
+
+    </div>
+
+    <script>
+        // 10 Problemas rigurosamente calibrados para el indicador 1.2
+        const questionsData = [
+            {
+                type: "direct",
+                badge: "Reto 1 • ÷ 10",
+                title: "Desplaza el punto decimal 1 lugar hacia la izquierda:",
+                expression: "45.8 ÷ 10 =",
+                answer: "4.58",
+                options: ["458", "4.58", "0.458", "45.80"],
+                explanation: "Al dividir 45.8 entre 10 (1 cero), movemos el punto decimal 1 lugar a la izquierda: 45.8 ➡️ 4.58."
+            },
+            {
+                type: "direct",
+                badge: "Reto 2 • ÷ 100",
+                title: "Desplaza el punto decimal 2 lugares hacia la izquierda:",
+                expression: "320.5 ÷ 100 =",
+                answer: "3.205",
+                options: ["32.05", "3.205", "0.3205", "3205"],
+                explanation: "Al dividir entre 100 (2 ceros), movemos el punto 2 lugares a la izquierda: 320.5 ➡️ 3.205."
+            },
+            {
+                type: "direct",
+                badge: "Reto 3 • ÷ 10",
+                title: "Divide entre 10 moviendo el punto a la izquierda:",
+                expression: "7.2 ÷ 10 =",
+                answer: "0.72",
+                options: ["72", "0.72", "0.072", "7.20"],
+                explanation: "Como 7.2 solo tiene una cifra entera, al mover el punto 1 lugar a la izquierda agregamos un cero entero: 0.72."
+            },
+            {
+                type: "direct",
+                badge: "Reto 4 • ÷ 1,000",
+                title: "Desplaza el punto decimal 3 lugares a la izquierda:",
+                expression: "850.0 ÷ 1,000 =",
+                answer: "0.85",
+                options: ["8.50", "0.85", "0.085", "85.0"],
+                explanation: "Dividir entre 1,000 significa mover el punto 3 posiciones a la izquierda: 850.0 ➡️ 0.8500 = 0.85."
+            },
+            {
+                type: "direct",
+                badge: "Reto 5 • ÷ 100",
+                title: "Divide entre 100 desplazando el punto 2 posiciones:",
+                expression: "14.5 ÷ 100 =",
+                answer: "0.145",
+                options: ["1.45", "0.145", "0.0145", "145"],
+                explanation: "Movemos el punto 2 lugares a la izquierda: 14.5 ➡️ 0.145."
+            },
+            {
+                type: "input",
+                badge: "Reto 6 • Ceros adicionales",
+                title: "Escribe la respuesta exacta (agrega un cero si te quedas sin cifras):",
+                expression: "6.8 ÷ 100 =",
+                answer: "0.068",
+                explanation: "Al dividir 6.8 ÷ 100 (2 saltos a la izquierda), falta una cifra, así que agregamos un cero: 6.8 ➡️ 0.068."
+            },
+            {
+                type: "direct",
+                badge: "Reto 7 • ÷ 10",
+                title: "Calcula desplazando el punto decimal:",
+                expression: "123.4 ÷ 10 =",
+                answer: "12.34",
+                options: ["1.234", "12.34", "1234", "0.1234"],
+                explanation: "Dividir entre 10 (1 cero) desplaza el punto 1 lugar a la izquierda: 123.4 ➡️ 12.34."
+            },
+            {
+                type: "input",
+                badge: "Reto 8 • Desafío de Ceros",
+                title: "Desplaza el punto 3 posiciones a la izquierda:",
+                expression: "9.5 ÷ 1,000 =",
+                answer: "0.0095",
+                explanation: "Para mover el punto 3 lugares a la izquierda en 9.5, colocamos ceros extras a la izquierda: 0.0095."
+            },
+            {
+                type: "word",
+                badge: "Reto 9 • Problema Verbal 1",
+                title: "Resuelve el problema aplicado:",
+                expression: "Una cinta mide 25.4 cm y se corta en 10 partes iguales. ¿Cuánto mide cada parte?",
+                answer: "2.54",
+                options: ["2.54 cm", "0.254 cm", "25.4 cm", "254 cm"],
+                explanation: "Calculamos 25.4 ÷ 10 = 2.54 cm. ¡El punto decimal se movió 1 lugar a la izquierda!"
+            },
+            {
+                type: "word",
+                badge: "Reto 10 • Problema Verbal 2",
+                title: "Resuelve el problema final de la misión:",
+                expression: "Un saco de café pesa 450.5 kg y se reparte en 100 bolsas iguales. ¿Cuánto pesa cada bolsa?",
+                answer: "4.505",
+                options: ["45.05 kg", "4.505 kg", "0.4505 kg", "4505 kg"],
+                explanation: "Dividimos el peso total entre 100: 450.5 ÷ 100 = 4.505 kg (desplazando el punto 2 lugares a la izquierda)."
+            }
+        ];
+
+        // Estado Global
+        let currentQuestionIndex = 0;
+        let score = 0;
+        let streak = 0;
+        let correctCount = 0;
+        let canAnswer = true;
+        let userInput = "";
+
+        // Web Audio API para efectos de sonido
+        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+
+        function playSound(type) {
+            if (audioCtx.state === 'suspended') {
+                audioCtx.resume();
+            }
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+            osc.connect(gain);
+            gain.connect(audioCtx.destination);
+
+            if (type === 'correct') {
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(523.25, audioCtx.currentTime); // C5
+                osc.frequency.exponentialRampToValueAtTime(659.25, audioCtx.currentTime + 0.1); // E5
+                osc.frequency.exponentialRampToValueAtTime(783.99, audioCtx.currentTime + 0.2); // G5
+                gain.gain.setValueAtTime(0.2, audioCtx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.35);
+                osc.start();
+                osc.stop(audioCtx.currentTime + 0.35);
+            } else if (type === 'wrong') {
+                osc.type = 'sawtooth';
+                osc.frequency.setValueAtTime(240, audioCtx.currentTime);
+                osc.frequency.exponentialRampToValueAtTime(140, audioCtx.currentTime + 0.2);
+                gain.gain.setValueAtTime(0.25, audioCtx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.3);
+                osc.start();
+                osc.stop(audioCtx.currentTime + 0.3);
+            }
+        }
+
+        function startGame() {
+            document.getElementById('welcome-screen').classList.add('hidden');
+            document.getElementById('game-screen').classList.remove('hidden');
+            document.getElementById('summary-screen').classList.add('hidden');
+            currentQuestionIndex = 0;
+            score = 0;
+            streak = 0;
+            correctCount = 0;
+            updateHeader();
+            loadQuestion();
+        }
+
+        function updateHeader() {
+            document.getElementById('question-count').innerText = `${currentQuestionIndex + 1}/${questionsData.length}`;
+            document.getElementById('progress-bar').style.width = `${((currentQuestionIndex + 1) / questionsData.length) * 100}%`;
+            document.getElementById('streak-count').innerText = `Racha: ${streak}`;
+            document.getElementById('score-count').innerText = score;
+        }
+
+        function loadQuestion() {
+            canAnswer = true;
+            userInput = "";
+            document.getElementById('explanation-box').classList.add('hidden');
+
+            const q = questionsData[currentQuestionIndex];
+            document.getElementById('problem-badge').innerText = q.badge;
+            document.getElementById('problem-title').innerText = q.title;
+
+            // Transmitir mensaje motivacional del Profesor Mateo
+            const teacherMsgs = [
+                "¡Cuenta los ceros del divisor para saber cuántos saltos dará el punto a la izquierda!",
+                "¡Recuerda! A la izquierda hace el número más pequeño.",
+                "¡Pon mucha atención a la posición de la coma o punto!",
+                "¡Tú puedes! Desplaza el punto paso a paso."
+            ];
+            document.getElementById('teacher-message').innerText = teacherMsgs[Math.floor(Math.random() * teacherMsgs.length)];
+
+            // Renderizar la expresión
+            const visualContainer = document.getElementById('visual-expression');
+            visualContainer.innerHTML = `<span>${q.expression}</span>`;
+
+            // Renderizar la zona interactiva según el tipo de ejercicio
+            const area = document.getElementById('interaction-area');
+            area.innerHTML = '';
+
+            if (q.type === 'direct' || q.type === 'word') {
+                // Opciones Múltiples
+                const grid = document.createElement('div');
+                grid.className = 'grid grid-cols-1 sm:grid-cols-2 gap-3 mt-3';
+
+                q.options.forEach((opt) => {
+                    const btn = document.createElement('button');
+                    btn.className = 'pulse-btn p-3.5 sm:p-4 rounded-xl border-2 border-indigo-600/60 bg-indigo-900/80 hover:bg-indigo-800 text-cyan-100 font-bold text-lg sm:text-xl transition text-center shadow-md';
+                    btn.innerText = opt;
+                    btn.onclick = () => checkAnswer(opt, btn);
+                    grid.appendChild(btn);
+                });
+                area.appendChild(grid);
+
+            } else if (q.type === 'input') {
+                // Teclado numérico interactivo
+                const inputWrapper = document.createElement('div');
+                inputWrapper.className = 'flex flex-col items-center gap-3';
+                inputWrapper.innerHTML = `
+                    <div id="display-input" class="w-full max-w-xs bg-slate-950 border-2 border-cyan-400 rounded-2xl py-3 px-4 text-center font-fredoka text-2xl text-yellow-300 min-h-[3.2rem] flex items-center justify-center tracking-widest shadow-inner">
+                        _
+                    </div>
+                    <div class="grid grid-cols-4 gap-2 w-full max-w-xs">
+                        <button onclick="pressKey('1')" class="pulse-btn bg-indigo-800 hover:bg-indigo-700 py-2.5 rounded-xl text-lg font-bold">1</button>
+                        <button onclick="pressKey('2')" class="pulse-btn bg-indigo-800 hover:bg-indigo-700 py-2.5 rounded-xl text-lg font-bold">2</button>
+                        <button onclick="pressKey('3')" class="pulse-btn bg-indigo-800 hover:bg-indigo-700 py-2.5 rounded-xl text-lg font-bold">3</button>
+                        <button onclick="pressKey('4')" class="pulse-btn bg-indigo-800 hover:bg-indigo-700 py-2.5 rounded-xl text-lg font-bold">4</button>
+                        <button onclick="pressKey('5')" class="pulse-btn bg-indigo-800 hover:bg-indigo-700 py-2.5 rounded-xl text-lg font-bold">5</button>
+                        <button onclick="pressKey('6')" class="pulse-btn bg-indigo-800 hover:bg-indigo-700 py-2.5 rounded-xl text-lg font-bold">6</button>
+                        <button onclick="pressKey('7')" class="pulse-btn bg-indigo-800 hover:bg-indigo-700 py-2.5 rounded-xl text-lg font-bold">7</button>
+                        <button onclick="pressKey('8')" class="pulse-btn bg-indigo-800 hover:bg-indigo-700 py-2.5 rounded-xl text-lg font-bold">8</button>
+                        <button onclick="pressKey('9')" class="pulse-btn bg-indigo-800 hover:bg-indigo-700 py-2.5 rounded-xl text-lg font-bold">9</button>
+                        <button onclick="pressKey('0')" class="pulse-btn bg-indigo-800 hover:bg-indigo-700 py-2.5 rounded-xl text-lg font-bold">0</button>
+                        <button onclick="pressKey('.')" class="pulse-btn bg-cyan-600 hover:bg-cyan-500 py-2.5 rounded-xl text-xl font-bold text-yellow-300">.</button>
+                        <button onclick="pressKey('DEL')" class="pulse-btn bg-rose-700 hover:bg-rose-600 py-2.5 rounded-xl text-sm font-bold"><i class="fa-solid fa-backspace"></i></button>
+                    </div>
+                    <button onclick="submitInputAnswer()" class="pulse-btn w-full max-w-xs bg-emerald-500 hover:bg-emerald-600 text-slate-950 font-fredoka text-lg py-3 rounded-xl mt-1 shadow-lg border-b-4 border-emerald-700">
+                        ✔️ COMPROBAR
+                    </button>
+                `;
+                area.appendChild(inputWrapper);
+            }
+
+            updateHeader();
+        }
+
+        function pressKey(key) {
+            if (!canAnswer) return;
+            if (key === 'DEL') {
+                userInput = userInput.slice(0, -1);
+            } else {
+                if (key === '.' && userInput.includes('.')) return;
+                if (userInput.length < 8) userInput += key;
+            }
+            const display = document.getElementById('display-input');
+            display.innerText = userInput || '_';
+        }
+
+        function submitInputAnswer() {
+            if (!canAnswer || !userInput) return;
+            checkAnswer(userInput.trim());
+        }
+
+        function checkAnswer(selectedOption, btnElement = null) {
+            if (!canAnswer) return;
+            canAnswer = false;
+
+            const q = questionsData[currentQuestionIndex];
+            // Normalizar comparación ignorando unidades si las hay
+            const cleanSelected = selectedOption.replace(/[^\d.]/g, '');
+            const cleanCorrect = q.answer.replace(/[^\d.]/g, '');
+
+            const isCorrect = (cleanSelected === cleanCorrect);
+
+            const expBox = document.getElementById('explanation-box');
+            const expText = document.getElementById('explanation-text');
+            const feedbackStatus = document.getElementById('feedback-status');
+
+            if (isCorrect) {
+                playSound('correct');
+                score += 100 + (streak * 10);
+                streak += 1;
+                correctCount += 1;
+
+                if (btnElement) {
+                    btnElement.classList.remove('bg-indigo-900/80', 'border-indigo-600/60');
+                    btnElement.classList.add('bg-emerald-600', 'border-emerald-300', 'text-white');
+                }
+
+                document.getElementById('teacher-message').innerText = "¡Súper excelente! 🌟 Has desplazado el punto decimal exactamente donde corresponde.";
+                feedbackStatus.innerText = "¡Excelente Trabajo!";
+                feedbackStatus.className = "text-emerald-700 font-bold";
+                expBox.className = "bg-emerald-50 border-2 border-emerald-400 rounded-2xl p-4 mb-5 text-emerald-950 shadow";
+
+                triggerConfetti();
+
+            } else {
+                playSound('wrong');
+                streak = 0;
+
+                if (btnElement) {
+                    btnElement.classList.remove('bg-indigo-900/80', 'border-indigo-600/60');
+                    btnElement.classList.add('bg-rose-600', 'border-rose-300', 'text-white');
+                }
+
+                document.getElementById('teacher-message').innerText = "¡Casi lo logras! Revisa la regla con la explicación de abajo y continuemos.";
+                feedbackStatus.innerText = "¡Aprendamos del error!";
+                feedbackStatus.className = "text-amber-800 font-bold";
+                expBox.className = "bg-amber-50 border-2 border-amber-400 rounded-2xl p-4 mb-5 text-amber-950 shadow";
+            }
+
+            expText.innerText = q.explanation;
+            expBox.classList.remove('hidden');
+
+            updateHeader();
+        }
+
+        function nextQuestion() {
+            currentQuestionIndex++;
+            if (currentQuestionIndex < questionsData.length) {
+                loadQuestion();
+            } else {
+                showSummary();
+            }
+        }
+
+        function toggleHintModal() {
+            const modal = document.getElementById('hint-modal');
+            modal.classList.toggle('hidden');
+        }
+
+        function showSummary() {
+            document.getElementById('game-screen').classList.add('hidden');
+            document.getElementById('summary-screen').classList.remove('hidden');
+
+            document.getElementById('correct-count').innerText = `${correctCount}/${questionsData.length}`;
+            document.getElementById('final-stars').innerText = `${score} pts`;
+            document.getElementById('final-score').innerText = `Puntaje Final: ${score} pts`;
+
+            const badgeIcon = document.getElementById('badge-icon');
+            const finalTitle = document.getElementById('final-title');
+            const finalTeacherMsg = document.getElementById('final-teacher-msg');
+
+            if (correctCount >= 9) {
+                badgeIcon.innerText = "🏆";
+                finalTitle.innerText = "¡Maestro del Punto Decimal!";
+                finalTeacherMsg.innerText = "¡Perfecto! Dominas el desplazamiento del punto decimal a la izquierda a la perfección. ¡Eres un as de las matemáticas!";
+            } else if (correctCount >= 6) {
+                badgeIcon.innerText = "🥈";
+                finalTitle.innerText = "¡Explorador Avanzado!";
+                finalTeacherMsg.innerText = "¡Buen trabajo! Has comprendido la regla para dividir entre 10, 100 y 1,000. Practica un poco más para ser imparable.";
+            } else {
+                badgeIcon.innerText = "🥉";
+                finalTitle.innerText = "¡Aprendiz Decimal!";
+                finalTeacherMsg.innerText = "¡Buen intento! Recuerda contar los ceros del divisor para mover el punto a la izquierda. ¡Inténtalo de nuevo!";
+            }
+
+            triggerConfetti();
+        }
+
+        function restartGame() {
+            startGame();
+        }
+
+        // Animación simple de confeti con Canvas
+        function triggerConfetti() {
+            const canvas = document.getElementById('confetti-canvas');
+            const ctx = canvas.getContext('2d');
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+
+            const particles = [];
+            const colors = ['#f59e0b', '#10b981', '#6366f1', '#ec4899', '#06b6d4'];
+
+            for (let i = 0; i < 60; i++) {
+                particles.push({
+                    x: Math.random() * canvas.width,
+                    y: Math.random() * canvas.height - canvas.height,
+                    size: Math.random() * 8 + 4,
+                    color: colors[Math.floor(Math.random() * colors.length)],
+                    vy: Math.random() * 3 + 2,
+                    vx: Math.random() * 2 - 1
+                });
+            }
+
+            let frame = 0;
+            function animate() {
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+                particles.forEach(p => {
+                    p.y += p.vy;
+                    p.x += p.vx;
+                    ctx.fillStyle = p.color;
+                    ctx.beginPath();
+                    ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
+                    ctx.fill();
+                });
+
+                frame++;
+                if (frame < 120) {
+                    requestAnimationFrame(animate);
+                } else {
+                    ctx.clearRect(0, 0, canvas.width, canvas.height);
+                }
+            }
+            animate();
+        }
+
+        window.onload = function() {
+            // Inicializado y listo
+        };
+    </script>
+</body>
+</html>
